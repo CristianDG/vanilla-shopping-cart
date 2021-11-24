@@ -3,34 +3,43 @@ const collections = [
     {
         'name': 'Books',
         'items' : [
-            'sicp',
+            'structure and interpretation of computer programs',
             'the javascript book',
             'javascript: the good parts',
         ]
     },
 ]
-// parece PF mas de certeza não é
+
+// agora parece PF
 class CustomElement{
-    constructor(element){
-        this.node = element
+    constructor(node, effects = []){
+        this.node = node
+        this.effects = effects
     }
 
-    pure(node){
-        return new CustomElement(node)
+    element(elementName){
+        this.node = document.createElement(elementName)
+        this.effects = []
+        return this
     }
 
-    buildNode(elementName){
-        return this.pure(document.createElement(elementName))
+    pureEffect(effect){
+        this.effects.push(effect)
+        return this
+    }
+
+    // o unico side-effect realizado
+    build(){
+        this.effects.forEach(effect => effect(this.node))
+        return this
     }
 
     withInnerText(text){
-        this.node.innerText = text
-        return this.pure(this.node)
+        return this.pureEffect(node => { node.innerText = text })
     }
 
     withChild(customChild){
-        this.node.append(customChild.node)
-        return this.pure(this.node)
+        return this.pureEffect(node => node.append(customChild.build().node))
     }
 
     withChilds(customChildList){
@@ -38,18 +47,14 @@ class CustomElement{
     }
 
     withCustomAttribute(name, value){
-        this.node.setAttribute(name, value)
-        return this.pure(this.node)
+        return this.pureEffect(node => node.setAttribute(name, value))
     }
 
-    unwrap(){
-        return this.node
-    }
 }
 
 const customElement = elementName => 
     new CustomElement()
-        .buildNode(elementName)
+        .element(elementName)
 
 const displayItem = (itemName, index) =>
     customElement('li').withChilds([
@@ -61,23 +66,24 @@ function generateHTML(){
     const root = new CustomElement(document.querySelector('#app')).withChilds(collections.map(collection => {
 
         const name = new CustomElement()
-            .buildNode('p')
+            .element('p')
             .withInnerText(collection.name)
 
         const items = collection.items.map(displayItem)
 
         const collectionContainer = new CustomElement()
-            .buildNode('ul')
+            .element('ul')
             .withChilds(items)
 
         const div = new CustomElement()
-            .buildNode('div')
+            .element('div')
             .withChilds([name, collectionContainer])
 
         return div
 
     }))
 
+    root.build()
 
 }
 
