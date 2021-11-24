@@ -2,6 +2,7 @@
 const collections = [
     {
         'name': 'Books',
+        // TODO: mudar para uma estrutura mais complexa
         'items' : [
             'structure and interpretation of computer programs',
             'the javascript book',
@@ -50,17 +51,29 @@ class CustomElement{
         return this.pureEffect(node => node.setAttribute(name, value))
     }
 
+    withEventListener(e, f){
+        return this.pureEffect(node => node.addEventListener(e, f))
+    }
+
 }
 
 const customElement = elementName => 
     new CustomElement()
         .element(elementName)
 
-const displayItem = (itemName, index) =>
-    customElement('li').withChilds([
-        customElement('span').withInnerText(itemName),
-        customElement('input').withCustomAttribute('type', 'checkbox')
-    ])
+const displayItem = (itemName, index) => {
+
+    const text = customElement('span').withInnerText(itemName)
+
+    const checkbox = customElement('input')
+        .withCustomAttribute('type', 'checkbox')
+        .withEventListener('change', e => {
+            // TODO: WIP
+            text.withInnerText('selecionado').build()
+        })
+
+    return customElement('li').withChilds([text, checkbox]) 
+}
 
 function generateHTML(){
     const root = new CustomElement(document.querySelector('#app')).withChilds(collections.map(collection => {
@@ -81,9 +94,7 @@ function generateHTML(){
 
         return div
 
-    }))
-
-    root.build()
+    })).build()
 
 }
 
