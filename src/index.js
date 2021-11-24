@@ -37,27 +37,48 @@ class CustomElement{
         return customChildList.reduce((acc, child) => acc.withChild(child), this)
     }
 
+    withCustomAttribute(name, value){
+        this.node.setAttribute(name, value)
+        return this.pure(this.node)
+    }
+
     unwrap(){
         return this.node
     }
 }
 
+const customElement = elementName => 
+    new CustomElement()
+        .buildNode(elementName)
+
+const displayItem = (itemName, index) =>
+    customElement('li').withChilds([
+        customElement('span').withInnerText(itemName),
+        customElement('input').withCustomAttribute('type', 'checkbox')
+    ])
+
 function generateHTML(){
     const root = new CustomElement(document.querySelector('#app')).withChilds(collections.map(collection => {
 
-        const name = new CustomElement().buildNode('p').withInnerText(collection.name)
+        const name = new CustomElement()
+            .buildNode('p')
+            .withInnerText(collection.name)
 
-        const items = collection.items.map((itemName, index) => (
-            new CustomElement().buildNode('li').withInnerText(itemName)
-        ))
+        const items = collection.items.map(displayItem)
 
-        const ul = new CustomElement().buildNode('ul').withChilds(items)
+        const collectionContainer = new CustomElement()
+            .buildNode('ul')
+            .withChilds(items)
 
-        const div = new CustomElement().buildNode('div').withChilds([name,ul])
+        const div = new CustomElement()
+            .buildNode('div')
+            .withChilds([name, collectionContainer])
 
         return div
 
     }))
+
+
 }
 
 generateHTML()
